@@ -1,0 +1,156 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+<h3 style="text-align: center">My To Do List</h3>
+<br />
+
+<table id="itemTable" class="table table-responsive table-hover table-condensed">
+    <tr>
+        <th>Task Name</th>
+        <th>Date Created</th>
+        <th width="15%"></th>
+        <th width="15%"></th>
+    </tr>
+</table>
+<hr />
+<button class="btn btn-primary" id="addNewItem">Add New Task</button>
+
+<form method="post" id="newItemForm" style="display: none;">
+    <label>Add New Task</label><br /> <br/>
+    <input id="itemName" type="text" />
+    <span style="display: none;">Please enter a task</span>
+    <br />
+    <br/>
+    <input type="submit" value="Save Task" class="btn btn-default" />
+</form>
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+
+            $.ajax({
+                url: 'home/display/',
+                dataType: 'json',
+                contentType: 'application/json',
+                method: 'GET'
+            }).done(function (items) {
+
+                $.each(items, function (idx, item) {
+                    $("#itemTable").append(lineItem(item));
+                    renderMarkCompleted(item);
+                });
+
+            }).error(function () {
+                console.log("error");
+            });
+
+            $("#addNewItem").click(function () {
+                $("#newItemForm").slideDown();
+                $("#newItemForm input:text").val("");
+                $(this).hide();
+            });
+
+            $("#newItemForm input:submit").click(function () {
+                $("#newItemForm span").hide();
+
+                var request = {
+                    Item: $("#itemName").val()
+                };
+
+                if (!request.Item) {
+                    $("#itemName").next().show();
+                    return false;
+                }
+
+                $.ajax({
+                    url: 'home/create/',
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    method: 'POST',
+                    data: JSON.stringify(request)
+                }).done(function (item) {
+                    $("#newItemForm").hide();
+                    $("#itemTable").append(lineItem(item));
+                    $("#addNewItem").show();
+                }).error(function (xhr) {
+                    if (xhr.status == 400) {
+                        alert("Please enter valid information");
+                    } else {
+                        alert("There a problem saving your task");
+                    }
+                });
+                return false;
+            });
+
+            //Delete
+            $("#itemTable").on("click", "a[delete-id]", function () {
+
+                var deleteButton = $(this);
+                var id = $(this).attr('delete-id');
+
+                $.ajax({
+                    url: '/home/delete/' + id,
+                    contentType: 'application/json',
+                    method: "POST"
+                }).done(function (a, b, c) {
+                    console.log(a, b, c);
+                    $(deleteButton).parents('tr').remove();
+                }).error(function (xhr) {
+                    console.log(xhr);
+                    alert("There was a problem deleting your task");
+                });
+            });
+
+            //mark complete
+            $("#itemTable").on("click", "a[mark-id]", function () {
+
+                var markButton = $(this);
+                var id = $(this).attr('mark-id');
+
+                $.ajax({
+                    url: '/home/markcomplete/' + id,
+                    contentType: 'application/json',
+                    method: "POST"
+                }).done(function (a, b, c) {
+                    console.log(a, b, c);
+
+                    markComplete(id);
+                }).error(function (xhr) {
+                    console.log(xhr);
+                    alert("There was a problem marking the task complete");
+                });
+            });
+
+        });
+        
+        function lineItem(toDoItem) {
+            var row = $('<tr></tr>');
+            var taskName = $(' <td id="taskName-' + toDoItem.Id +'">' + toDoItem.Item + '</td>');
+            var taskDate = $(' <td id="taskDate-' + toDoItem.Id + '">' + toDoItem.DateAdded + '</td>');
+            var deleteButton = $('<td><a delete-id="' + toDoItem.Id + '" href="#">Delete</a></td>');
+            var markButton = $('<td><a mark-id="' + toDoItem.Id + '" href="#">Mark Complete</a></td>');
+
+            row.append(taskName);
+            row.append(taskDate);
+            row.append(deleteButton);
+            row.append(markButton);
+
+            return row;
+        }
+
+        function renderMarkCompleted(toDoItem) {
+            if (toDoItem.IsCompleted == true) {
+                markComplete(toDoItem.Id);
+            }
+        }
+
+        function markComplete(id) {
+
+                $('td[id*=' + id + ']').css({ "text-decoration": "line-through", "color": "red" });
+                $('a[mark-id=' + id + ']').hide();
+            
+        }
+
+    </script>
+}
