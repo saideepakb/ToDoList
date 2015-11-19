@@ -15,14 +15,13 @@
 </table>
 <hr />
 <button class="btn btn-primary" id="addNewItem">Add New Task</button>
-
+<br>
 <form method="post" id="newItemForm" style="display: none;">
-    <label>Add New Task</label><br /> <br/>
-    <input id="itemName" type="text" />
+    <label>Add New Task</label><br />
+    <input id="itemName" type="text" class="form-control" />
     <span style="display: none;">Please enter a task</span>
     <br />
-    <br/>
-    <input type="submit" value="Save Task" class="btn btn-default" />
+    <input type="submit" value="Save Task" class="btn btn-primary" />
 </form>
 
 @section scripts {
@@ -30,7 +29,7 @@
         $(document).ready(function () {
 
             $.ajax({
-                url: 'home/display/',
+                url: 'display/',
                 dataType: 'json',
                 contentType: 'application/json',
                 method: 'GET'
@@ -64,7 +63,7 @@
                 }
 
                 $.ajax({
-                    url: 'home/create/',
+                    url: 'create/',
                     dataType: 'json',
                     contentType: 'application/json',
                     method: 'POST',
@@ -77,7 +76,7 @@
                     if (xhr.status == 400) {
                         alert("Please enter valid information");
                     } else {
-                        alert("There a problem saving your task");
+                        alert("There was a problem saving your task");
                     }
                 });
                 return false;
@@ -90,7 +89,7 @@
                 var id = $(this).attr('delete-id');
 
                 $.ajax({
-                    url: '/home/delete/' + id,
+                    url: 'delete/' + id,
                     contentType: 'application/json',
                     method: "POST"
                 }).done(function (a, b, c) {
@@ -109,7 +108,7 @@
                 var id = $(this).attr('mark-id');
 
                 $.ajax({
-                    url: '/home/markcomplete/' + id,
+                    url: 'markcomplete/' + id,
                     contentType: 'application/json',
                     method: "POST"
                 }).done(function (a, b, c) {
